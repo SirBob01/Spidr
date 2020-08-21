@@ -22,31 +22,27 @@ class Parser(HTMLParser):
 
 class Spider(object):
     def __init__(self, parser, *start_urls):
-        self.explore = [self.get_ip(l) for l in list(start_urls)]
+        self.explore = list(start_urls)
         self.visited = {}
 
         self.parser = parser
 
-    def get_ip(self, url):
-        return url
-
-    def process(self, ip):
-        print(ip, len(self.explore))
-        response = request.urlopen(ip)
+    def request(self, url):
+        response = request.urlopen(url)
         return response.read().decode()
 
     def crawl(self):
         while self.explore:
-            ip = self.explore.pop()
-            self.visited[ip] = True
+            url = self.explore.pop(0)
+            self.visited[url] = True
 
             try:
-                self.parser.feed(self.process(ip))
+                req = self.request(url)
+                self.parser.feed(req)
             except:
                 continue
 
             for child in self.parser.get_children():
-                c_ip = self.get_ip(child)
-                if c_ip in self.visited:
+                if child in self.visited:
                     continue
-                self.explore.append(c_ip)
+                self.explore.append(child)
